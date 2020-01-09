@@ -6,8 +6,8 @@ namespace Less5
 {
     class Program
     {
-        public static char[] sentencePunctuationMarks = new char[] { '.', '!', '?' };
-        public static char[] wordPunctuationMarks = new char[] { ',', ':', '-', ';', ' ' };
+        private static readonly char[] sentencePunctuationMarks = { '.', '!', '?' };
+        private static readonly char[] wordPunctuationMarks = { ',', ':', '-', ';', ' ' };
         private static int maxDigit = 0;
         private static int maxLength = 0;
 
@@ -15,41 +15,41 @@ namespace Less5
         {
             Console.WriteLine("Write the text");
             var input = Console.ReadLine();
-            var sentences = SplitInSentences(input);
+            string[] sentences = SplitInSentences(input);
 
             Console.WriteLine("Write 1 to Find words containing the maximum number of digits.\n" +
                               "Write 2 to Find the longest words and print them\n" +
-                              "Write 3 to Replace the numbers from 0 to 9 with the words “zero”, “one”, ..., “nine\"");
+                              "Write 3 to Replace the numbers from 0 to 9 with the words “zero”, “one”, ..., “nine\"\n" +
+                              "Write 4 to Display first interrogative and then exclamatory sentences\n" +
+                              "Write 5 to Only display sentences that do not contain commas");
 
             switch (Console.ReadLine())
             {
                 case "1":
                     string[] tempWords;
 
-                    for (int i = 0; i < sentences.Length; i++)
+                    foreach (var sentence in sentences)
                     {
-                        tempWords = SentenceToWords(sentences[i]);
+                        tempWords = SentenceToWords(sentence);
 
-                        for (int j = 0; j < tempWords.Length; j++)
+                        foreach (var word in tempWords)
                         {
+                            char[] tempCharArray = word.ToCharArray();
+                            var count = tempCharArray.Count(n => n >= '0' && n <= '9');
 
-                            char[] tempCharArray = tempWords[j].ToCharArray();
-                            var count = tempCharArray.Where((n) => n >= '0' && n <= '9').Count();
                             if (count > maxDigit) maxDigit = count;
                         }
-
                     }
 
-                    for (int i = 0; i < sentences.Length; i++)
+                    foreach (var sentence in sentences)
                     {
-                        tempWords = SentenceToWords(sentences[i]);
+                        tempWords = SentenceToWords(sentence);
 
-                        for (int j = 0; j < tempWords.Length; j++)
+                        foreach (var word in tempWords)
                         {
-
-                            char[] tempCharArray = tempWords[j].ToCharArray();
-                            var count = tempCharArray.Where((n) => n >= '0' && n <= '9').Count();
-                            if (count == maxDigit) Console.WriteLine(tempWords[j]);
+                            char[] tempCharArray = word.ToCharArray();
+                            var count = tempCharArray.Count(n => n >= '0' && n <= '9');
+                            if (count == maxDigit) Console.WriteLine(word);
                         }
                     }
 
@@ -58,22 +58,22 @@ namespace Less5
                     break;
 
                 case "2":
-                    for (int i = 0; i < sentences.Length; i++)
+                    foreach (var sentence in sentences)
                     {
-                        tempWords = SentenceToWords(sentences[i]);
+                        tempWords = SentenceToWords(sentence);
 
-                        for (int j = 0; j < tempWords.Length; j++)
-                            if (maxLength < tempWords[j].Length)
-                                maxLength = tempWords[j].Length;
+                        foreach (var word in tempWords)
+                            if (maxLength < word.Length)
+                                maxLength = word.Length;
                     }
 
-                    for (int i = 0; i < sentences.Length; i++)
+                    foreach (var sentence in sentences)
                     {
-                        tempWords = SentenceToWords(sentences[i]);
+                        tempWords = SentenceToWords(sentence);
 
-                        for (int j = 0; j < tempWords.Length; j++)
-                            if (maxLength == tempWords[j].Length)
-                                Console.WriteLine(tempWords[j]);
+                        foreach (var word in tempWords)
+                            if (maxLength == word.Length)
+                                Console.WriteLine(word);
                     }
 
                     break;
@@ -83,6 +83,26 @@ namespace Less5
 
                     input = string.Join("", input.Select(x => char.IsDigit(x) ? numbers[x - '0'] : x.ToString()));
                     Console.WriteLine(input);
+
+                    break;
+                case "4":
+                    var questSentences = sentences.Where(x => x.EndsWith('?')).ToArray();
+                    var exclamationSentances = sentences.Where(x => x.EndsWith('!')).ToArray();
+
+                    foreach (var sentence in questSentences)
+                        Console.WriteLine(sentence);
+
+                    foreach (var sentence in exclamationSentances)
+                        Console.WriteLine(sentence);
+
+                    break;
+
+                case "5":
+
+                    var sentensesWithoutComma = sentences.Where(x => !x.Contains(',')).ToArray();
+
+                    foreach (var sentence in sentensesWithoutComma)
+                        Console.WriteLine(sentence);
 
                     break;
             }
@@ -97,43 +117,34 @@ namespace Less5
             Console.ReadKey();
         }
 
-        public static string[] SplitInSentences(string text)
+        private static string[] SplitInSentences(string text)
         {
             string tempText = text;
 
-            for (int i = 0; i < sentencePunctuationMarks.Length; i++)
-                tempText = tempText.Replace(sentencePunctuationMarks[i].ToString(), $"{sentencePunctuationMarks[i]}#");
+            foreach (var mark in sentencePunctuationMarks)
+                tempText = tempText.Replace(mark.ToString(), $"{mark}#");
 
             while (tempText.Contains("#.") || tempText.Contains("#?") || tempText.Contains("#!"))
             {
-                while (tempText.Contains("#."))
-                {
-                    tempText = tempText.Replace("#.", ".#");
-                }
-
-                while (tempText.Contains("#?"))
-                {
-                    tempText = tempText.Replace("#?", "?#");
-                }
-
-                while (tempText.Contains("#!"))
-                {
-                    tempText = tempText.Replace("#!", "!#");
-                }
+                tempText = tempText
+                        .Replace("#.", ".#")
+                        .Replace("#?", "?#")
+                        .Replace("#!", "!#");
             }
-            var sentences = tempText.Split('#');
 
-            for (int i = 0; i < sentences.Length; i++)
-                sentences = sentences.Where(sentence => sentence.Length != 0).ToArray();
+            return tempText
+                .Split('#')
+                .Where(sentence => sentence.Length != 0)
+                .ToArray();
 
-            return sentences;
         }
 
-        public static string[] SentenceToWords(string text)
+        private static string[] SentenceToWords(string text)
         {
-            var words = text.Split(wordPunctuationMarks);
-            words = words.Where(word => word.Length != 0).ToArray();
-            return words;
+            return text
+                .Split(wordPunctuationMarks)
+                .Where(word => word.Length != 0)
+                .ToArray();
         }
     }
 }
