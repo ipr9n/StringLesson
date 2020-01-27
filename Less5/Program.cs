@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Linq;
 
 
@@ -14,9 +15,26 @@ namespace Less5
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Write the text");
+            string input = "";
 
-            var input = Console.ReadLine();
+            if (args.Length == 0)
+            {
+                Console.WriteLine("Write the text");
+                input = Console.ReadLine();
+            }
+            else
+            {
+                Console.WriteLine($"Read from: {Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)}\\input.txt");
+
+                if(File.Exists($"{Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)}\\input.txt"))
+                    input = File.ReadAllText($"{Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)}\\input.txt");
+                else
+                {
+                    Console.WriteLine("File doesn't exist, write the text");
+                    input = Console.ReadLine();
+                }
+            }
+
             string[] sentences = SplitInSentences(input);
 
             string[][] wordsBySentences = sentences
@@ -75,8 +93,8 @@ namespace Less5
                         break;
                     case "4":
 
-                        string[] questSentences = FindQuestSentences(sentences);
-                        string[] exclamationSentences = FindExclamationSentences(sentences);
+                        string[] questSentences = FindQuestSentences(in sentences);
+                        string[] exclamationSentences = FindExclamationSentences(in sentences);
 
                         foreach (var sentence in questSentences)
                             Console.WriteLine(sentence);
@@ -87,7 +105,7 @@ namespace Less5
                         break;
                     case "5":
 
-                        var sentensesWithoutComma = FindSentencesWithoutComma(sentences);
+                        var sentensesWithoutComma = FindSentencesWithoutComma(in sentences);
 
                         foreach (var sentence in sentensesWithoutComma)
                             Console.WriteLine(sentence);
@@ -109,11 +127,13 @@ namespace Less5
             }
         }
 
-        private static string[] FindQuestSentences(string[] inputSentences) => inputSentences.Where(x => x.EndsWith('?')).ToArray(); 
+        private static string[] FindQuestSentences(in string[] inputSentences) => inputSentences.Where(x => x.EndsWith('?')).ToArray(); 
 
-        private static string[] FindExclamationSentences(string[] inputSentences) => inputSentences.Where(x => x.EndsWith('!')).ToArray();
+        private static string[] FindExclamationSentences(in string[] inputSentences) => inputSentences.Where(x => x.EndsWith('!')).ToArray();
 
-        private static string[] FindSentencesWithoutComma(string[] inputSentences) => inputSentences.Where(x => !x.Contains(',')).ToArray();
+        private static string[] FindSentencesWithoutComma(in string[] inputSentences) => inputSentences.Where(x => !x.Contains(',')).ToArray();
+
+        private static string[] SentenceToWords(string sentence) => sentence.Split(wordPunctuationMarks, StringSplitOptions.RemoveEmptyEntries);
 
         private static string FindLongestWords(string[][] text, out int maxLength, out int countMaxLengthWord)
         {
@@ -173,11 +193,6 @@ namespace Less5
                 .Where(sentence => sentence.Length != 0)
                 .ToArray();
 
-        }
-
-        private static string[] SentenceToWords(string sentence)
-        {
-            return sentence.Split(wordPunctuationMarks, StringSplitOptions.RemoveEmptyEntries);
         }
     }
 }
