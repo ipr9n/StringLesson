@@ -26,6 +26,7 @@ namespace Less5
             while (true)
             {
                 Console.WriteLine("----------------------------------------------------------------------------------");
+
                 if (input.Length < 1)
                 {
                     Console.WriteLine("Error. Please write the text\n" +
@@ -40,6 +41,7 @@ namespace Less5
                         .ToArray();
                     continue;
                 }
+
                 Console.WriteLine("Write 1 to Find words containing the maximum number of digits.\n" +
                                   "Write 2 to Find the longest words and print them\n" +
                                   "Write 3 to Replace the numbers from 0 to 9 with the words “zero”, “one”, ..., “nine\"\n" +
@@ -50,38 +52,19 @@ namespace Less5
                 switch (Console.ReadLine())
                 {
                     case "1":
+                        string wordsWithContainingMaximumDigits = FindWordsContainingMaximumDigits(wordsBySentences, out int maxDigit);
 
-                        int maxDigit = wordsBySentences.SelectMany(s => s)
-                            .Max(word => word.Count(c => char.IsDigit(c)));
-
-                        Console.WriteLine("Word(s): \n");
-
-                        foreach (string[] sentence in wordsBySentences)
-                             foreach (var word in sentence)
-                                 if (word.Count(c => char.IsDigit(c)) == maxDigit)
-                                     Console.WriteLine(word);
-
+                        Console.WriteLine($"Word(s): \n{wordsWithContainingMaximumDigits}");
                         Console.WriteLine($"Maximum number of digits in word is {maxDigit}");
 
                         break;
 
                     case "2":
-
-                        int maxLength = wordsBySentences.SelectMany(s => s)
-                            .Max(word => word.Length);
-
-                        int countMaxLengthWord = wordsBySentences.SelectMany(s => s)
-                            .Count(word => word.Length == maxLength);
-
-                        Console.WriteLine("Word(s): \n");
-
-                        foreach (var sentence in wordsBySentences)
-                             foreach (var word in sentence)
-                                 if (maxLength == word.Length)
-                                        Console.WriteLine(word);
+                        string longestWords = FindLongestWords(wordsBySentences, out int maxLength, out int countMaxLengthWord);
 
                         Console.WriteLine($"Count most length word is {countMaxLengthWord}\n" +
-                                          $"Max length is {maxLength}\n");
+                                          $"Max length is {maxLength}\n" +
+                                          $"Words: \n {longestWords}");
 
                         break;
 
@@ -91,8 +74,9 @@ namespace Less5
 
                         break;
                     case "4":
-                        var questSentences = sentences.Where(x => x.EndsWith('?')).ToArray();
-                        var exclamationSentences = sentences.Where(x => x.EndsWith('!')).ToArray();
+
+                        string[] questSentences = FindQuestSentences(sentences);
+                        string[] exclamationSentences = FindExclamationSentences(sentences);
 
                         foreach (var sentence in questSentences)
                             Console.WriteLine(sentence);
@@ -101,10 +85,9 @@ namespace Less5
                             Console.WriteLine(sentence);
 
                         break;
-
                     case "5":
 
-                        var sentensesWithoutComma = sentences.Where(x => !x.Contains(',')).ToArray();
+                        var sentensesWithoutComma = FindSentencesWithoutComma(sentences);
 
                         foreach (var sentence in sentensesWithoutComma)
                             Console.WriteLine(sentence);
@@ -115,9 +98,7 @@ namespace Less5
                             .Where(word => word.ToLower()[0] == word.ToLower()[word.Length - 1]).ToArray();
 
                         foreach (var word in words)
-                        {
                             Console.WriteLine(word);
-                        }
 
                         break;
 
@@ -126,6 +107,50 @@ namespace Less5
                         break;
                 }
             }
+        }
+
+        private static string[] FindQuestSentences(string[] inputSentences) => inputSentences.Where(x => x.EndsWith('?')).ToArray(); 
+
+        private static string[] FindExclamationSentences(string[] inputSentences) => inputSentences.Where(x => x.EndsWith('!')).ToArray();
+
+        private static string[] FindSentencesWithoutComma(string[] inputSentences) => inputSentences.Where(x => !x.Contains(',')).ToArray();
+
+        private static string FindLongestWords(string[][] text, out int maxLength, out int countMaxLengthWord)
+        {
+            string words = "";
+
+            maxLength = text.SelectMany(s => s)
+                .Max(word => word.Length);
+
+            int tempMaxLength = maxLength;
+
+            countMaxLengthWord = text.SelectMany(s => s)
+                .Count(word => word.Length == tempMaxLength);
+
+            Console.WriteLine("Word(s): \n");
+
+            foreach (var sentence in text)
+            foreach (var word in sentence)
+                if (maxLength == word.Length)
+                    words += $"{word}\n";
+
+            return words;
+        }
+
+        private static string FindWordsContainingMaximumDigits(string[][] text, out int maxDigit)
+        {
+           maxDigit = text.SelectMany(s => s)
+                .Max(word => word.Count(c => char.IsDigit(c)));
+
+           string words = "";
+
+            foreach (string[] sentence in text)
+            foreach (var word in sentence)
+                if (word.Count(c => char.IsDigit(c)) == maxDigit)
+                    words += $"{word}\n";
+
+            return words;
+
         }
 
         private static string[] SplitInSentences(string text)
